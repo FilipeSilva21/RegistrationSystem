@@ -1,14 +1,15 @@
-package models;
+package com.models;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "tbUsers")
 public class User {
 
@@ -27,13 +28,5 @@ public class User {
     private int age;
 
     @Column(name = "altura")
-    private BigDecimal height;
-
-    public User(Long userId, String name, String email, BigDecimal height) {
-        this.userId = userId;
-        this.name = name;
-        this.email = email;
-        this.age = age;
-        this.height = height;
-    }
+    private double height;
 }
