@@ -7,18 +7,19 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "tbQuestions")
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "tbQuestions")
 public class Question {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "questionId")
-    private Long QuestionId;
+    private Long questionId;
 
-    @Column(name = "question")
-    private String question;
+    @Column(name = "text")
+    private String text;
 }
+

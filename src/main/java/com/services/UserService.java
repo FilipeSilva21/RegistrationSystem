@@ -1,9 +1,8 @@
 package com.services;
 
 import com.DTOs.CreateUserDTO;
-import com.DTOs.UpdateUserDTO;
-import com.Repositories.UserRepository;
 import com.models.User;
+import com.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,22 +21,33 @@ public class UserService {
     private UserRepository userRepository;
 
     public Long createUser(CreateUserDTO createUserDTO){
-
         var user = new User(
                 null,
+                createUserDTO.age(),
                 createUserDTO.name(),
                 createUserDTO.email(),
-                createUserDTO.age(),
                 createUserDTO.height()
         );
 
-        if (userRepository.findByEmail(createUserDTO.email()).isPresent()){
-            throw new IllegalArgumentException("Usuario com esse email ja existe");
-        } else {
-            var userSaved = userRepository.save(user);
-
-            return userSaved.getUserId();
+        if(createUserDTO.name().length() < 10){
+            throw new IllegalArgumentException("Nome do usuario deve ter no minimo 10 caracteres");
         }
+
+        if(userRepository.findByEmail(createUserDTO.email()).isPresent()){
+            throw new IllegalArgumentException("Usuario com esse email ja cadastrado");
+        }
+
+        if(createUserDTO.age() < 18){
+            throw new IllegalArgumentException("Usuario deve ter no minimo 18 anos");
+        }
+
+        if (!createUserDTO.email().contains("@")){
+            throw new IllegalArgumentException("Usuario de email não é valido pos deve conter '@'");
+        }
+
+        var userSaved = userRepository.save(user);
+
+        return userSaved.getUserId();
     }
 
     public List<User> getAllUsers(){
@@ -45,35 +55,17 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public Optional<User>getUserById (Long userId){
+    public Optional<User> getUserById(Long userId){
 
         return userRepository.findById(userId);
     }
 
-    public void updateUser(Long userId, UpdateUserDTO updateUserDTO) throws Exception {
-        var userExists = userRepository.findById(userId);
-
-        if (userExists.isPresent()) {
-            var user = userExists.get();
-
-            if (updateUserDTO.name() != null) {
-                user.setName(updateUserDTO.name());
-            }
-            userRepository.save(user);
-            System.out.println("Usuario atualizado com sucesso");
-        } else {
-            throw new Exception("Usuario nao existe");
+    public List<User> searchUser(String search) {
+        List<User> result = userRepository.findByNameContainingIgnoreCase(search);
+        if (result.isEmpty()) {
+            result = userRepository.findAllByEmail(search);
         }
-    }
-
-    public void deleteUser (Long userId) throws Exception {
-        var userExists = userRepository.existsById(userId);
-
-        if(userExists) {
-            userRepository.deleteById(userId);
-        } else {
-            throw new Exception("Usuario não existe");
-        }
+        return result;
     }
 
     public File generateFileAllUsers() {
@@ -85,13 +77,10 @@ public class UserService {
         for (User user : users) {
             userData.append(" ").append(user.getUserId())
                     .append(" - Name: ").append(user.getName())
-                    /*.append(", Email: ").append(user.getEmail())
-                    .append(", Idade: ").append(user.getAge())
-                    .append(", Altura: ").append(user.getHeight())*/
                     .append("\n");
         }
 
-        try (FileWriter fileWriter = new FileWriter(file)) { // Overwrite the file each time
+        try (FileWriter fileWriter = new FileWriter(file)) {
             fileWriter.write(userData.toString());
             fileWriter.flush();
         } catch (IOException e) {
